@@ -1,9 +1,7 @@
-// ! Good to go
-
 import { useState } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import { useMutation } from "@apollo/client";
-import { ADD_USER } from "../utils/mutations"; // Import the ADD_USER mutation
+import { ADD_USER } from "../utils/mutations";
 import Auth from "../utils/auth";
 
 const SignupForm = () => {
@@ -15,8 +13,7 @@ const SignupForm = () => {
   const [validated] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
-  // Initialize the ADD_USER mutation
-  const [addUser] = useMutation(ADD_USER);
+  const [addUser, { loading, error }] = useMutation(ADD_USER);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -25,6 +22,7 @@ const SignupForm = () => {
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
+    console.log(userFormData);
 
     const form = event.currentTarget;
     if (form.checkValidity() === false) {
@@ -33,14 +31,22 @@ const SignupForm = () => {
     }
 
     try {
-      const { data } = await addUser({ variables: { ...userFormData } }); // Execute the ADD_USER mutation with userFormData
+      const { data } = await addUser({
+        variables: { ...userFormData },
+      });
+      console.log(data);
+
       Auth.login(data.addUser.token);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       setShowAlert(true);
     }
 
-    setUserFormData({ username: "", email: "", password: "" });
+    setUserFormData({
+      username: "",
+      email: "",
+      password: "",
+    });
   };
 
   return (
@@ -99,8 +105,10 @@ const SignupForm = () => {
             Password is required!
           </Form.Control.Feedback>
         </Form.Group>
+
         <Button
           disabled={
+            loading ||
             !(
               userFormData.username &&
               userFormData.email &&
@@ -110,7 +118,7 @@ const SignupForm = () => {
           type="submit"
           variant="success"
         >
-          Submit
+          {loading ? "Submitting..." : "Submit"}
         </Button>
       </Form>
     </>

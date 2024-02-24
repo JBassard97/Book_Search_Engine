@@ -1,30 +1,16 @@
-// ! Good to go
-
-import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { Container, Card, Button, Row, Col } from "react-bootstrap";
-import { GET_ME } from "../utils/queries"; // Import the GET_ME query
-import { REMOVE_BOOK } from "../utils/mutations"; // Import the REMOVE_BOOK mutation
+import { REMOVE_BOOK } from "../utils/mutations"; // Import the GET_ME and REMOVE_BOOK queries
+import { GET_ME } from "../utils/queries";
 import Auth from "../utils/auth";
 import { removeBookId } from "../utils/localStorage";
 
 const SavedBooks = () => {
-  const [userData, setUserData] = useState({});
+  const { loading, data } = useQuery(GET_ME); // Use useQuery to execute the GET_ME query
+  const [removeBookMutation] = useMutation(REMOVE_BOOK); // Use useMutation for the REMOVE_BOOK mutation
 
-  // Execute the GET_ME query on component load
-  const { loading, data } = useQuery(GET_ME);
+  const userData = data?.me || {}; // Extract user data from the query response
 
-  // Initialize the REMOVE_BOOK mutation
-  const [removeBook] = useMutation(REMOVE_BOOK);
-
-  // Update userData with the query data
-  useEffect(() => {
-    if (data) {
-      setUserData(data.me);
-    }
-  }, [data]);
-
-  // Create function to handle book deletion
   const handleDeleteBook = async (bookId) => {
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
@@ -33,25 +19,16 @@ const SavedBooks = () => {
     }
 
     try {
-      // Execute the REMOVE_BOOK mutation with the bookId
-      await removeBook({ variables: { bookId: bookId } });
+      const { data } = await removeBookMutation({ variables: { bookId } }); // Execute the removeBookMutation with bookId
 
-      // Update userData to reflect the removed book
-      setUserData((userData) => ({
-        ...userData,
-        savedBooks: userData.savedBooks.filter(
-          (book) => book.bookId !== bookId
-        ),
-      }));
-
-      // Remove bookId from localStorage
-      removeBookId(bookId);
+      if (data) {
+        removeBookId(bookId);
+      }
     } catch (err) {
       console.error(err);
     }
   };
 
-  // If data is still loading, display loading message
   if (loading) {
     return <h2>Loading...</h2>;
   }

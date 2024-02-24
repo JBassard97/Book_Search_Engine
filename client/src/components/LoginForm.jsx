@@ -1,17 +1,18 @@
-// ! Good to go
-
 import { useState } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import { useMutation } from "@apollo/client";
-import { LOGIN_USER } from "../utils/mutations"; // Import the LOGIN_USER mutation
+import { LOGIN_USER } from "../utils/mutations";
 import Auth from "../utils/auth";
 
 const LoginForm = () => {
-  const [userFormData, setUserFormData] = useState({ email: "", password: "" });
+  const [userFormData, setUserFormData] = useState({
+    email: "",
+    password: "",
+  });
   const [validated] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
-  const [loginUser, { error }] = useMutation(LOGIN_USER); // Initialize the LOGIN_USER mutation
+  const [loginUser, { error }] = useMutation(LOGIN_USER);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -21,7 +22,6 @@ const LoginForm = () => {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
 
-    // check if form has everything (as per react-bootstrap docs)
     const form = event.currentTarget;
     if (form.checkValidity() === false) {
       event.preventDefault();
@@ -29,18 +29,17 @@ const LoginForm = () => {
     }
 
     try {
-      const { data } = await loginUser({ variables: userFormData }); // Execute the LOGIN_USER mutation with the userFormData
-      const { token, user } = data.login;
-      Auth.login(token);
+      const { data } = await loginUser({
+        variables: { ...userFormData },
+      });
+
+      if (data) {
+        Auth.login(data.login.token);
+      }
     } catch (err) {
       console.error(err);
       setShowAlert(true);
     }
-
-    setUserFormData({
-      email: "",
-      password: "",
-    });
   };
 
   return (
@@ -52,13 +51,14 @@ const LoginForm = () => {
           show={showAlert}
           variant="danger"
         >
-          Something went wrong with your login credentials!
+          Incorrect email or password!
         </Alert>
+
         <Form.Group className="mb-3">
           <Form.Label htmlFor="email">Email</Form.Label>
           <Form.Control
-            type="text"
-            placeholder="Your email"
+            type="email"
+            placeholder="Your email address"
             name="email"
             onChange={handleInputChange}
             value={userFormData.email}
@@ -83,6 +83,7 @@ const LoginForm = () => {
             Password is required!
           </Form.Control.Feedback>
         </Form.Group>
+
         <Button
           disabled={!(userFormData.email && userFormData.password)}
           type="submit"
