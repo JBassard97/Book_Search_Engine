@@ -13,7 +13,7 @@ const SignupForm = () => {
   const [validated] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
-  const [addUser, { error, data }] = useMutation(ADD_USER);
+  const [addUser, { error }] = useMutation(ADD_USER);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -22,7 +22,6 @@ const SignupForm = () => {
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
-    console.log(userFormData);
 
     const form = event.currentTarget;
     if (form.checkValidity() === false) {
@@ -34,19 +33,14 @@ const SignupForm = () => {
       const { data } = await addUser({
         variables: { ...userFormData },
       });
-      console.log(data);
 
-      Auth.login(data.addUser.token);
-    } catch (error) {
-      console.error(error);
+      if (data) {
+        Auth.login(data.addUser.token);
+      }
+    } catch (err) {
+      console.error(err);
       setShowAlert(true);
     }
-
-    setUserFormData({
-      username: "",
-      email: "",
-      password: "",
-    });
   };
 
   return (
@@ -108,7 +102,6 @@ const SignupForm = () => {
 
         <Button
           disabled={
-            loading ||
             !(
               userFormData.username &&
               userFormData.email &&
@@ -118,7 +111,7 @@ const SignupForm = () => {
           type="submit"
           variant="success"
         >
-          {loading ? "Submitting..." : "Submit"}
+          Submit
         </Button>
       </Form>
     </>
