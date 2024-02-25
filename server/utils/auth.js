@@ -5,13 +5,16 @@ const expiration = "2h";
 
 module.exports = {
   authMiddleware: function ({ req }) {
-    let token = req.headers.authorization || "";
+    let token = req.body.token || req.query.token || req.headers.authorization;
 
-    if (token) {
-      token = token.replace("Bearer ", "");
+    if (req.headers.authorization) {
+      token = token.split(" ").pop().trim();
     }
 
+    console.log("Received token:", token);
+
     if (!token) {
+      console.log("No token found");
       return req;
     }
 

@@ -50,23 +50,30 @@ const SearchBooks = () => {
   };
 
   const handleSaveBook = async (bookId) => {
+    console.log("starting handleSaveBook...");
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
+    console.log("Book being saved:", bookToSave);
     const token = Auth.loggedIn() ? Auth.getToken() : null;
+    console.log("Token:", token);
 
     if (!token) {
+      console.log("No token found");
       return false;
     }
 
     try {
+      console.log("Attempting to save book...");
       const response = await saveBookMutation({
         variables: { input: bookToSave },
       });
+      console.log("Save book response:", response);
 
       if (response && response.data) {
+        console.log("Book saved successfully.");
         setSavedBookIds([...savedBookIds, bookToSave.bookId]);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error saving book", err);
     }
   };
 
